@@ -3,6 +3,10 @@
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 
+// data order:
+// Moisture, Humidity, Temperature, Time
+
+
 #define SECS_PER_MIN  (60UL)
 #define SECS_PER_HOUR (3600UL)
 #define SECS_PER_DAY  (SECS_PER_HOUR * 24L)
@@ -14,6 +18,7 @@
 
 unsigned long currentMillis = 0;
 const int CSPin = 10;
+const int msV = 9;
 const int dir1PinA = 7;
 const int dir2PinA = 6;
 const int dir3PinA = 5;
@@ -21,6 +26,7 @@ const int dir4PinA = 4;
 const int enA = 3;
 const int DHTPIN = 2;
 const int moistPin = A3;
+
 int count = 100;
 int lcdOn = 0;
 int moistureRead(){
@@ -71,6 +77,7 @@ void setup() {
   lcd2.backlight();
 
   pinMode(8, INPUT);
+  pinMode(9, OUTPUT);
   pinMode(dir1PinA, OUTPUT);
   pinMode(dir2PinA, OUTPUT);
   pinMode(dir3PinA, OUTPUT);
@@ -100,17 +107,24 @@ void setup() {
   }
 }
 
-void loop() {
-
-  if(digitalRead(8) == HIGH && lcdOn == 0){
+void loop(long val) {
+ if(digitalRead(8) == HIGH && lcdOn == 0){
     lcdOn = 1;
-    delay(3000);
+    delay(1000);
   }else if (digitalRead(8) == HIGH && lcdOn == 1){
     lcdOn = 0;
-    delay(3000);
+    delay(1000);
   }
-  time(millis() / 1000);  
-  moisture = analogRead(moistPin);
+
+if(numberOfSeconds(val) == 30)
+{
+    digitalWrite(msV, HIGH);
+    delay(10);
+    moisture = map(analogRead(moistPin), 0, 800, 0, 100);
+    delay(10);
+    digitalWrite(msV, LOW);
+}
+
   float humid = dht.readHumidity();
   float temp = dht.readTemperature();
   analogWrite(enA, count);
@@ -136,19 +150,25 @@ void loop() {
 
   if (moisture >= 200)
   {
+    myFile.print((float)moisture, 1);
+    myFile.print(humid);
+    myFile.print((float)temp, 1);
+    myFile.println();
+    time(millis() / 1000);  
+    myFile.close();
     digitalWrite(dir3PinA, LOW);
     digitalWrite(dir4PinA, HIGH);
     delay(5000);
-    myFile.print((float)moisture, 1);
-    myFile.print(humid);
-    myFile.close();
   }
   else if (temp >= 30){
+    myFile.print((float)moisture, 1);
+    myFile.print(humid);
+    myFile.print((float)temp, 1);
+    time(millis() / 1000);  
+    myFile.close();
     digitalWrite(dir1PinA, LOW);
     digitalWrite(dir2PinA, HIGH);
     delay(5000);
-    myFile.print((float)temp, 1);
-    myFile.close();
     }else{
     digitalWrite(dir1PinA, LOW);
     digitalWrite(dir2PinA, LOW);
@@ -158,21 +178,22 @@ void loop() {
     }
   }
 void time(long val){  
+ myFile.println();
  int days = elapsedDays(val);
  int hours = numberOfHours(val);
  int minutes = numberOfMinutes(val);
  int seconds = numberOfSeconds(val);
-  Serial.print(days,DEC);  
+  myFile.print(days,DEC);  
   printDigits(hours);  
   printDigits(minutes);
   printDigits(seconds);
-  Serial.println();  
+  myFile.println();  
 }
 
 void printDigits(byte digits){
   // utility function for digital clock display: prints colon and leading 0
-  Serial.print(":");
+  myFile.print(":");
   if(digits < 10)
-  Serial.print('0');
-  Serial.print(digits,DEC);   
+  myFile.print('0');
+  myFile.print(digits,DEC);   
 }

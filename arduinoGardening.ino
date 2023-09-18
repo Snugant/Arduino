@@ -26,7 +26,7 @@ const int dir4PinA = 4;
 const int enA = 3;
 const int DHTPIN = 2;
 const int moistPin = A3;
-
+bool something = false;
 int count = 100;
 int lcdOn = 0;
 int moistureRead(){
@@ -107,7 +107,7 @@ void setup() {
   }
 }
 
-void loop(long val) {
+void loop() {
  if(digitalRead(8) == HIGH && lcdOn == 0){
     lcdOn = 1;
     delay(1000);
@@ -115,9 +115,8 @@ void loop(long val) {
     lcdOn = 0;
     delay(1000);
   }
-
-if(numberOfSeconds(val) == 30)
-{
+saver();
+if (something == true){
     digitalWrite(msV, HIGH);
     delay(10);
     moisture = map(analogRead(moistPin), 0, 800, 0, 100);
@@ -148,7 +147,7 @@ if(numberOfSeconds(val) == 30)
   lcd2.setCursor(0, 1);
   lcd2.print("Light = ");
 
-  if (moisture >= 200)
+  if (moisture <= 30)
   {
     myFile.print((float)moisture, 1);
     myFile.print(humid);
@@ -174,7 +173,7 @@ if(numberOfSeconds(val) == 30)
     digitalWrite(dir2PinA, LOW);
     digitalWrite(dir3PinA, LOW);
     digitalWrite(dir4PinA, LOW);            
-      return;
+    return;
     }
   }
 void time(long val){  
@@ -196,4 +195,11 @@ void printDigits(byte digits){
   if(digits < 10)
   myFile.print('0');
   myFile.print(digits,DEC);   
+}
+
+void saver(){
+  something = false;
+  delay(5000);
+  something = true;
+  delay(100);
 }

@@ -56,6 +56,11 @@ byte read_data() {
 DFRobot_DS1307 DS1307;
 
 void setup() {
+
+  moisture = analogRead(moistPin);
+  float humid = dht.readHumidity();
+  float temp = dht.readTemperature();
+
   dht.begin();
   lcd1.init();
   lcd1.backlight();
@@ -101,22 +106,20 @@ void setup() {
 void loop() {
 
     if (digitalRead(13) == HIGH) {
-    digitalWrite(dir4PinA, HIGH);
-    else if (moisture >= 200) {
-    digitalWrite(dir3PinA, LOW);
+    digitalWrite(dir4PinA, HIGH); 
+    delay(5000);
+  }  else if (moisture >= 200) {
     digitalWrite(dir4PinA, HIGH);
     delay(5000);
   } else if (temp >= 30) {
-    digitalWrite(dir1PinA, LOW);
     digitalWrite(dir2PinA, HIGH);
     delay(5000);
   } else {
-    digitalWrite(dir1PinA, LOW);
     digitalWrite(dir2PinA, LOW);
-    digitalWrite(dir3PinA, LOW);
     digitalWrite(dir4PinA, LOW);
     return;
   }
+  
 
   uint16_t getTimeBuff[7] = { 0 };
   DS1307.getTime(getTimeBuff);
@@ -132,9 +135,6 @@ void loop() {
 
   int mins = getTimeBuff[1];
 
-  moisture = analogRead(moistPin);
-  float humid = dht.readHumidity();
-  float temp = dht.readTemperature();
   analogWrite(enA, count);
 
   lcd1.setCursor(0, 0);
@@ -146,7 +146,7 @@ void loop() {
   lcd1.print((float)temp, 1);
   lcd1.print("C");
 
-  if (mins != prevMins && (mins == 0 || mins == 30)) {
+  if (mins != prevMins && (mins == 0 || mins == 15)) {
     prevMins = mins;
   }
 
@@ -157,14 +157,13 @@ void loop() {
 
     myFile = SD.open("DATA.txt", FILE_WRITE);
     Serial.println("Writing data");
-    myFile.print(timeStamp);
-    myFile.println(moisture);
+    myFile.print(outputarr);
+    myFile.print(moisture);
     myFile.print(", ");
-    myFile.print((float)temp, 1)
+    myFile.print((float)temp, 1);
     myFile.print(", ");
-    myFile.println((float)humid, 1)
+    myFile.println((float)humid, 1);
     myFile.close();
     Serial.println("Closed");
   }
-  delay(1000);
 }
